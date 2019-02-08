@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+    <meta charset="utf-8">
+    <title>Home</title>
+
+    <!--Adding the Merriweather, Times New Roman font.-->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+    <link rel="stylesheet"
+          href="https://fonts.googleapis.com/css?family=Merriweather">
+    <style>
+        body {
+            font-family: 'Merriweather', serif, "Times New Roman";
+            font-size: 14px;
+        }
+    </style>
+
+    <!-- Compiled and minified JavaScript -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+
+
+    <style>
+        /*wrapper to make collapsible and buttons overlay map*/
+        #wrapper { position: relative; }
+        #over_map { position: absolute; top: 60px; left: 10px; z-index: 99; }
+
+        /* Style for the collapsible content button to open and close the collapsible  */
+        .collapsible {
+            background-color: #263238;
+            color: #eceff1;
+            position: fixed;
+            top: 175px;
+            width: 30%;
+            cursor: pointer;
+            padding: 18px;
+            border: none;
+            text-align: left;
+            outline: none;
+            font-family: 'Merriweather', serif, "Times New Roman";
+            font-size: 24px;
+    }
+
+        /* Symbol on collapsible button to indicate whether the content is open or closed:*/
+        .collapsible:after {
+            content: '\02795'; /* Unicode character for "plus" sign (+) */
+            font-size: 13px;
+            color: #eceff1;
+            float: right;
+            margin-left: 5px;
+        }
+
+        .active:after {
+            content: "\2796"; /* Unicode character for "minus" sign (-) */
+        }
+
+        /* Adds a background color to the collapsible button when clicked on or hovered over */
+        .active, .collapsible:hover {
+            background-color: #e53935;
+        }
+
+        .disabled {
+            background-color: #263238;
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        /* Style the collapsible content. Note: hidden by default */
+        .content {
+            background-color: #fafafa;
+            font-family: Roboto,sans-serif;
+            font-size: 15px;
+            font-weight: 400;
+            position: fixed;
+            top: 250px;
+            width: 30%;
+            padding: 0 18px;
+            display: none;
+            overflow: hidden;
+        }
+
+        /*style for the map turn off/turn on buttons */
+        #adder {
+            background-color: #263238;
+            color: #eceff1;
+            position: fixed;
+            bottom: 25px;
+            right: 150px;
+            width: 50px;
+            height: 30px;
+            padding: 7px;
+            font-size: 15px;
+            border: 0px;
+            border-right: 1px solid gray; z-index: 100;}
+        #remover {
+            background-color: #263238;
+            color: #eceff1;
+            position: fixed;
+            bottom: 25px;
+            right: 100px;
+            width: 50px;
+            height: 30px;
+            padding: 7px;
+            font-size: 15px;
+            border: 0px;
+            z-index: 100;
+        }
+
+        /* Used code from this tutorial:
+        https://developers.google.com/maps/documentation/javascript/adding-a-google-map
+        Changed lat and long, location text, and added our own API key
+        Set map to full page using code from this tutorial:
+        https://developers.google.com/maps/documentation/javascript/importing_data
+
+        Set the size of the div element that contains the map */
+
+        /* Always set the map height explicitly to define the size of the div
+         * element that contains the map. */
+        #map {
+            height: 100%;
+        }
+        /* Optional: Makes the sample page fill the window. */
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+        #description {
+            font-family: Roboto, sans-serif;
+            font-size: 15px;
+            font-weight: 300;
+        }
+
+        #infowindow-content .title {
+            font-weight: bold;
+        }
+
+        #infowindow-content {
+            display: none;
+        }
+
+        #map #infowindow-content {
+            display: inline;
+        }
+
+        .pac-card {
+            margin: 10px 10px 0 0;
+            border-radius: 2px 0 0 2px;
+            box-sizing: border-box;
+            -moz-box-sizing: border-box;
+            outline: none;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+            background-color: #fff;
+            font-family: Roboto,sans-serif;
+        }
+
+        #pac-container {
+            padding-bottom: 12px;
+            margin-right: 12px;
+        }
+
+        .pac-controls {
+            display: inline-block;
+            padding: 5px 11px;
+        }
+
+        .pac-controls label {
+            font-family: Roboto, sans-serif;
+            font-size: 13px;
+            font-weight: 300;
+        }
+
+        #pac-input {
+            background-color: #fff;
+            font-family: Roboto, sans-serif;
+            font-size: 15px;
+            font-weight: 300;
+            margin-left: 12px;
+            padding: 0 11px 0 13px;
+            text-overflow: ellipsis;
+            width: 400px;
+        }
+
+        #pac-input:focus {
+            border-color: #4d90fe;
+        }
+
+        #title {
+            color: #fff;
+            background-color: #4d90fe;
+            font-size: 25px;
+            font-weight: 500;
+            padding: 6px 12px;
+        }
+        #target {
+            width: 345px;
+        }
+    </style>
+</head>
+<body>
+<nav>
+    <div class="nav-wrapper blue-grey darken-4">
+        <a href="#" class="brand-logo">LitMaps</a>
+        <ul id="nav-mobile" class="right hide-on-med-and-down">
+        </ul>
+    </div>
+</nav>
+
+<div id="over_map">
+
+
+    <!-- collapsible button class and div for content ("Welcome to LitMaps!" instructions) -->
+    <button class="collapsible">Welcome to LitMaps!</button>
+    <div class="content">
+        <p>Explore the literary world around you. Just click on the markers
+            to see what fiction has been written about the real landmarks
+            in your neighborhood.</p>
+    </div>
+
+    <!-- disabled button class -->
+    <div class="button disabled">
+    </div>
+
+    <!-- active button class -->
+    <!--  <div class="button active"> -->
+    <!-- </div> -->
+
+    <!-- adder and remover buttons to turn map on and off -->
+    <button id="adder">ON</button>
+    <button id="remover">OFF</button>
+
+</div>
+
+
+
+
+<input id="pac-input" class="controls" type="text" placeholder="Search Box">
+<div id="map" style="z-index: 1"></div>
+<script>
+    // This example adds a search box to a map, using the Google Place Autocomplete
+    // feature. People can enter geographical searches. The search box will return a
+    // pick list containing a mix of places and predicted search terms.
+
+    // This example requires the Places library. Include the libraries=places
+    // parameter when you first load the API. For example:
+    // <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&libraries=places">
+    function hideBox(){
+
+
+    }
+    function initAutocomplete() {
+        var map = new google.maps.Map(document.getElementById('map'), {
+            center: {lat: 33.749, lng: -84.450},
+            zoom: 10,
+            mapTypeId: 'terrain'
+        });
+        // Create the search box and link it to the UI element.
+        var input = document.getElementById('pac-input');
+        var searchBox = new google.maps.places.SearchBox(input);
+        map.controls[google.maps.ControlPosition.LEFT_TOP].push(input);
+
+        // Bias the SearchBox results towards current map's viewport.
+        map.addListener('bounds_changed', function() {
+            searchBox.setBounds(map.getBounds());
+        });
+
+        var markers = [];
+        // Listen for the event fired when the user selects a prediction and retrieve
+        // more details for that place.
+        searchBox.addListener('places_changed', function() {
+            var places = searchBox.getPlaces();
+
+            if (places.length == 0) {
+                return;
+            }
+
+            // For each place, get the icon, name and location.
+            var bounds = new google.maps.LatLngBounds();
+            places.forEach(function(place) {
+                if (!place.geometry) {
+                    console.log("Returned place contains no geometry");
+                    return;
+                }
+                var icon = {
+                    url: place.icon,
+                    size: new google.maps.Size(71, 71),
+                    origin: new google.maps.Point(0, 0),
+                    anchor: new google.maps.Point(17, 34),
+                    scaledSize: new google.maps.Size(25, 25)
+                };
+
+                // Create a marker for each place.
+                markers.push(new google.maps.Marker({
+                    map: map,
+                    icon: icon,
+                    title: place.name,
+                    position: place.geometry.location
+                }));
+
+                if (place.geometry.viewport) {
+                    // Only geocodes have viewport.
+                    bounds.union(place.geometry.viewport);
+                } else {
+                    bounds.extend(place.geometry.location);
+                }
+            });
+            map.fitBounds(bounds);
+        });
+
+
+        // Collapsible variable, document object, and event handler //
+        var coll = document.getElementsByClassName("collapsible");
+        var i;
+
+        for (i = 0; i < coll.length; i++) {
+            coll[i].addEventListener("click", function() {
+                this.classList.toggle("active");
+                var content = this.nextElementSibling;
+                if (content.style.display === "block") {
+                    content.style.display = "none";
+                } else {
+                    content.style.display = "block";
+                }
+            });
+        }
+
+
+        //div and variable for turning the map off and on (default on load is on) //
+
+        var mapRemove = document.getElementById('map');
+
+        // listen for click on remover button //
+        var rem = document.getElementById('remover');
+        rem.addEventListener('click', function (){
+            mapRemove.style.opacity = 0
+        });
+
+        var adds = document.getElementById('adder');
+        adds.addEventListener('click', function (){
+            mapRemove.style.opacity = 1;
+        });
+
+        // Array of markers. Code courtesy of https://www.youtube.com/watch?v=Zxf1mnP5zcw
+        var markers = [
+            {
+                coords:{lat:33.750462,lng:-84.394429},
+                content:'<h7>"Charlie Madigan Series" by Kelly Gay</h7>'
+            },
+            {
+                coords:{lat:33.727175,lng:-84.404006},
+                content:'<h7>"The Dog Star" by Donald Windham</h7>'
+            },
+            {
+                coords:{lat:33.944059,lng:-84.552152},
+                content:'<h7>"Gone With the Wind" by Margaret Mitchell</h7>'
+            },
+            {
+                coords:{lat:33.772948,lng:-84.391775},
+                content:'<h7>"Fractured" by Karen Slaughter</h7>'
+            },
+            {
+                coords:{lat:33.720721,lng:-84.37671},
+                content:'<h7>"The Forged Note" by Oscar Micheaux</h7>'
+            },
+            {
+                coords:{lat:33.850682,lng:-84.36282},
+                content:'<h7>"Peach Tree Road" by Anne Rivers Siddons</h7>'
+            },
+            //getting a weird error trying to use an apostrophe in "Butler's."
+            {
+                coords:{lat:33.770048,lng:-83.740528},
+                content:'<h7>"Rhett Butlers People" by Donald McCaig</h7>'
+            },
+            {
+                coords:{lat:33.538593,lng:-84.354568},
+                content:'<h7>"Scarlett" by  Alexandra Ripley</h7>'
+            },
+            {
+                coords:{lat:33.799643,lng:-84.327997},
+                content:'<h7>"The Stand" by  Stephen King</h7>'
+            },
+            {
+                coords:{lat:33.762739,lng:-84.371497},
+                content:'<h7>"Them: A Novel" by Nathan McCall</h7>'
+            },
+            {
+                coords:{lat:33.726849,lng:-84.270722},
+                content:'<h7>"Triptych" by Karin Slaughter</h7>'
+            },
+        ];
+
+        // Loop through markers
+        for(var i = 0;i < markers.length;i++){
+            // Add marker
+            addMarker(markers[i]);
+        }
+
+        // Add Marker Function
+        function addMarker(props){
+            var marker = new google.maps.Marker({
+                position:props.coords,
+                map:map,
+                //icon:props.iconImage
+            });
+
+            // Check content
+            if(props.content){
+                var infoWindow = new google.maps.InfoWindow({
+                    content:props.content
+                });
+
+                marker.addListener('click', function(){
+                    infoWindow.open(map, marker);
+                });
+            }
+        }
+    }
+</script>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA3nPW9rvm1szX6l-gXJovBUOLooyFG9AI&libraries=places&callback=initAutocomplete"
+        async defer></script>
+</body>
+</html>
+
